@@ -1,0 +1,136 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute vec4 vPosition;
+attribute vec4 vNormal;
+attribute vec4 vColor; //sets values for material diffuse and specular
+attribute vec4 ambient; //set value for diffuse 
+varying vec4 fColor;
+
+uniform mat4 projectionMatrix;
+uniform mat4 modelviewMatrix;
+uniform vec4 lightPosition;
+uniform float shininess;
+//console.log(lightPosition);
+void main() 
+{	
+	vec3 pos = -(modelviewMatrix * vPosition).xyz;
+    vec3 light = -(modelviewMatrix * lightPosition).xyz;
+	//console.log(lightPosition);
+    //vec3 light = lightPosition.xyz;
+    vec3 L = normalize( light - pos ); //s = vector from p to source
+
+    vec3 E = normalize( -pos ); //v = vector from p to eye
+    vec3 H = normalize( L + E ); // h = halfway vector
+
+    // Transform vertex normal into eye coordinates
+    vec3 N = normalize( (modelviewMatrix*vNormal).xyz);
+
+    // Compute terms in the illumination equation
+    float Kd = max( dot(L, N), 0.0 ); //diffuse intensity mulitplier
+    vec4  diffuse = Kd*vColor;
+
+    float Ks = pow( max(dot(N, H), 0.0), shininess ); //specular intensity multiplier
+    vec4  specular = Ks * vColor;
+    
+    if( dot(L, N) < 0.0 )  specular = vec4(0.0, 0.0, 0.0, 1.0); //turn off specular if not under light
+
+    fColor = ambient + diffuse +specular;
+    gl_Position = projectionMatrix * modelviewMatrix * vPosition;
+} 
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+  
+varying vec4 fColor;
+
+void main()
+{
+    gl_FragColor = fColor; //vec4(0.0, 0.0, 0.0, 1.0);//
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="./Final.js"></script>
+
+<style>
+label {
+	display: inline-block;
+	width: 220px;
+	text-align: right;
+}?
+input[type="text"], textareax {
+	background-color: #d1d1d1;
+}
+
+</style>
+
+</head>
+<body>
+<canvas id="gl-canvas" width="512" "="" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+
+<div>
+<label for="LungVolume" >Total Volume (mL)</label> <input type="text" id="LungVolume" readonly></br>
+</br>
+<p>Total Volume range is changed by position and percent of airflow reduction.</br>
+Click <b>Change Position</b> to Change the position.</br>
+Click <b>Animate Vital Capacity</b> to see vital capacity at 30 breaths/minute.</br>
+Type an integer between 0 and 99.99 and click <b>Reduce Airflow</b>.</br>
+The effects of the airflow reduction will be displayed on the right side</br>
+based on the original values on the left.</br>
+Airflow reduction is a reduction in Minute Ventilation. If you </br>
+click <b>Reduce Airflow</b>, the reduction is based strictly on Respiratory Rate.</br>
+You can set the Respiratory Rate to a value between 5 and 30 then</br>
+click <b>Reduce Volume</b> which will reduce Tidal Volume.</p>
+
+</br>
+</div>
+
+<table><tr><td>
+
+<div class="info">
+<button id="changePos">Change Position</button>
+<input type="text" id="position" value="Sitting" readonly>
+</br>
+</br>
+<label for="BRV" >Residual Volume (mL)</label> <input type="text" id="BRV" readonly></br>
+<label for="BTV" >Tidal Volume (mL)</label> <input type="text" id="BTV" readonly></br>
+<label for="BRR" >Respiratory Rate (breaths/min)</label> <input type="text" id="BRR" readonly></br>
+<label for="BMV" >Minute Ventilation (mL/min)</label> <input type="text" id="BMV" readonly></br>
+<label for="BIRV">Inspiratory Reserve Volume (mL)</label> <input type="text" id="BIRV" readonly></br>
+<label for="BERV">Expiratory Reserve Volume (mL)</label> <input type="text" id="BERV" readonly></br>
+<button id="vitalCapacity">Animate Vital Capacity</button>
+</div>
+</td><td>
+<div class="info">
+<input type="text" id="percent" value="0" style="background-color:lightgray;border-width:1px 4px 4px 1px;">
+<button id="percentFlow">Reduce Airflow</button>
+</br>
+</br>
+<label for="CRV" >Residual Volume (mL)</label> <input type="text" id="CRV" readonly></br>
+<label for="CTV" >Tidal Volume (mL)</label> <input type="text" id="CTV" readonly></br>
+<label for="CRR" >Respiratory Rate (breaths/min)</label> <input type="text" id="CRR" style="background-color:lightgray;border-width:1px 1px 4px 4px;"></br>
+<label for="CMV" >Minute Ventilation (mL/min)</label> <input type="text" id="CMV" readonly></br>
+<label for="CIRV">Inspiratory Reserve Volume (mL)</label> <input type="text" id="CIRV" readonly></br>
+<label for="CERV">Expiratory Reserve Volume (mL)</label> <input type="text" id="CERV" readonly></br>
+<button id="reduceVolume">Reduce Volume</button>
+</div>
+</td>
+</tr></table>
+   
+<br>
+
+
+
+
+
+</body></html>
